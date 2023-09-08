@@ -1,0 +1,70 @@
+1. Create a field on Account named "Number of Contacts". Populate this field with the number of contacts related to an account. 
+
+
+Apex Trigger:
+
+
+Trigger Numberofcontacts on contact(after insert,after update,after delete,after undelete)
+{
+if(trigger.isAfter)
+{
+if(trigger.isinsert || trigger.isupdate || trigger.isdelete ||trigger.isundelete)
+{
+NumberofcontactsHandler.totalcontacts(Trigger.new,Trigger.old);
+}
+}
+}
+
+
+Apex Handler Class:
+
+public class NumberofcontactsHandler {
+
+public static void totalcontacts(List<contact> newList,List<contact> oldList){
+
+set<Id> accountIDs = new set<Id>();
+
+if(newList!=null)
+{
+for(contact c :newList)
+{
+if(c.accountId!=null)
+{
+accountIDs.add(c.accountId);
+}
+
+}
+}
+
+if(oldList!=null)
+{
+for(contact c:oldList)
+{
+if(c.accountId!=null){
+
+accountIDs.add(c.accountId);
+
+}
+
+}
+}
+
+
+List<Account> accounts = [select Id, Number_of_Contacts__c,(select Id from contacts)from Account where Id in :accountIds];
+if(!accounts.isEmpty())
+{
+
+for(Account acc:accounts)
+{
+
+acc.Number_of_Contacts__c = acc.contacts.size();
+
+}
+
+}
+
+update accounts;
+ 
+        
+    }
+}

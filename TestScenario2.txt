@@ -1,0 +1,69 @@
+2. Build a basic lightning component that can query a list of 10 most recently created accounts and display it using a lightning app. 
+
+HTML:
+
+<template>
+<div style="height: 500px;">
+<template if:true={accountList}>
+     <lightning-datatable
+             key-field="id"
+             data={accountList}
+             columns={columns}>
+     </lightning-datatable>
+</template>
+</div>
+</template>
+
+
+JS:
+
+import { LightningElement, track, wire} from 'lwc';
+import getAccounts from '@salesforce/apex/getRecordDataController.getAccounts';
+
+export default class GetDataDisplayData extends LightningElement {
+     @track columns = [
+          { label: 'Name', fieldName: 'Name' },
+          { label: 'Id', fieldName: 'Id'},
+          { label: 'Phone', fieldName: 'Phone'},
+
+      ];
+     @track accountList;
+
+     //Method 2
+     @wire (getAccounts) wiredAccounts({data,error}){
+          if (data) {
+               this.accountList = data;
+          console.log(data);
+          } else if (error) {
+          console.log(error);
+          }
+     }
+}
+
+
+Apex Class:
+
+
+public with sharing class getRecordDataController {
+
+//@AuraEnabled is annotation enables LWC to access below apex method
+//(cacheable=true) is for caching the data on client side storage without
+   waiting for server trips. Which imporves the performance\
+
+  @AuraEnabled(cacheable=true)
+  public static List<Account> getAccounts() {
+    return [SELECT Id, Name, Phone FROM Account limit 10];
+  }
+}
+
+
+XML:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>49.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        
+</LightningComponentBundle>
